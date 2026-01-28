@@ -32,12 +32,17 @@
                     },
                     animation: {
                         'fade-in': 'fadeIn 0.5s ease-out',
+                        'slide-up': 'slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
                         'pulse-fast': 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
                     },
                     keyframes: {
                         fadeIn: {
-                            '0%': { opacity: '0', transform: 'translateY(10px)' },
-                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        slideUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px) scale(0.95)' },
+                            '100%': { opacity: '1', transform: 'translateY(0) scale(1)' },
                         }
                     }
                 },
@@ -90,8 +95,8 @@
             <a class="text-sm font-semibold hover:text-lime-accent transition-colors" href="#" onclick="app.resetView()">Discover</a>
             <a class="text-sm font-semibold hover:text-lime-accent transition-colors" href="#category-section">Categories</a>
             <a class="text-sm font-semibold hover:text-lime-accent transition-colors" href="#vibe-section">Vibe Check</a>
-            <a class="text-sm font-semibold hover:text-lime-accent transition-colors" href="#">Community</a>
-            <a class="text-sm font-semibold hover:text-lime-accent transition-colors" href="#">My Shelf</a>
+            <a class="text-sm font-semibold hover:text-lime-accent transition-colors" href="#"></a>
+            <a class="text-sm font-semibold hover:text-lime-accent transition-colors" href="#"></a>
         </nav>
         <div class="flex items-center gap-4">
             <button class="hidden sm:block text-sm font-bold px-4 py-2 rounded-xl hover:bg-white/5 transition-all">Log In</button>
@@ -109,6 +114,21 @@
         <div class="flex flex-col items-center gap-4">
             <span class="material-symbols-outlined text-primary text-5xl animate-spin">progress_activity</span>
             <p class="text-white font-bold animate-pulse">Consulting the algorithm...</p>
+        </div>
+    </div>
+
+    <!-- BOOK DETAILS MODAL (New Feature) -->
+    <div id="book-modal" class="hidden fixed inset-0 z-[70] bg-black/80 backdrop-blur-md p-4 flex items-center justify-center transition-opacity duration-300">
+        <div class="bg-card-dark w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl border border-white/10 shadow-2xl relative animate-slide-up flex flex-col md:flex-row overflow-hidden">
+            <!-- Close Button -->
+            <button onclick="app.closeDetails()" class="absolute top-4 right-4 z-20 w-10 h-10 bg-black/50 hover:bg-white text-white hover:text-black rounded-full flex items-center justify-center transition-colors backdrop-blur-md">
+                <span class="material-symbols-outlined text-xl">close</span>
+            </button>
+            
+            <!-- Modal Content Injected Here -->
+            <div id="modal-content" class="flex flex-col md:flex-row w-full h-full">
+                <!-- Template structure for JS injection -->
+            </div>
         </div>
     </div>
 
@@ -136,13 +156,15 @@
         </div>
 
         <!-- Featured "Book of the Week" Tile -->
-        <div class="col-span-12 md:col-span-6 lg:col-span-4 glass rounded-xl p-8 flex flex-col justify-between group cursor-pointer hover:border-lime-accent/50 transition-colors" onclick="app.showDetails(1)">
+        <div id="botw-container" class="col-span-12 md:col-span-6 lg:col-span-4 glass rounded-xl p-8 flex flex-col justify-between group cursor-pointer hover:border-lime-accent/50 transition-colors" onclick="app.showDetails(1)">
             <div class="relative w-full aspect-[3/4] rounded-lg overflow-hidden shadow-2xl group-hover:scale-105 transition-transform duration-500">
                 <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent z-10"></div>
-                <img class="w-full h-full object-cover" src="https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&q=80&w=800" alt="The Secret History cover"/>
+                <!-- Added ID for JS targeting -->
+                <img id="botw-img" class="w-full h-full object-cover" src="https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&q=80&w=800" alt="Book cover"/>
                 <div class="absolute bottom-4 left-4 z-20">
                     <p class="text-lime-accent text-xs font-bold mb-1">BOOK OF THE WEEK</p>
-                    <h3 class="font-serif text-2xl font-black">The Secret History</h3>
+                    <!-- Added ID for JS targeting -->
+                    <h3 id="botw-title" class="font-serif text-2xl font-black">Loading...</h3>
                 </div>
             </div>
             <div class="mt-6 flex justify-between items-center">
@@ -342,21 +364,21 @@
 <script>
     /**
      * MOCK DATABASE
-     * Kept for Vibe Checks and random suggestions
+     * Added descriptions for the summary feature
      */
     const bookDatabase = [
-        { id: 1, title: "The Secret History", author: "Donna Tartt", vibe: "Dark Academia", tags: ["chaotic", "murder", "classics"], img: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&q=80&w=800", rating: 4.8 },
-        { id: 2, title: "Fourth Wing", author: "Rebecca Yarros", vibe: "Spicy", tags: ["fantasy", "dragons", "romance"], img: "https://images.unsplash.com/photo-1629198688000-71f23e745b6e?auto=format&fit=crop&q=80&w=800", rating: 4.9 },
-        { id: 3, title: "Bunny", author: "Mona Awad", vibe: "Brain Rot", tags: ["weird", "dark", "campus"], img: "https://images.unsplash.com/photo-1532012197267-da84d127e765?auto=format&fit=crop&q=80&w=800", rating: 3.7 },
-        { id: 4, title: "Normal People", author: "Sally Rooney", vibe: "Heart-Wrenching", tags: ["sad girl", "romance", "contemporary"], img: "https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&q=80&w=800", rating: 4.2 },
-        { id: 5, title: "A Court of Thorns and Roses", author: "Sarah J. Maas", vibe: "Spicy", tags: ["fantasy", "fae", "romance"], img: "https://images.unsplash.com/photo-1519681393798-38e34e918b19?auto=format&fit=crop&q=80&w=800", rating: 4.5 },
-        { id: 6, title: "My Year of Rest and Relaxation", author: "Ottessa Moshfegh", vibe: "Comfy", tags: ["sad girl", "sleep", "unhinged"], img: "https://images.unsplash.com/photo-1491841550275-ad7854e35ca6?auto=format&fit=crop&q=80&w=800", rating: 3.9 },
-        { id: 7, title: "Babel", author: "R.F. Kuang", vibe: "Dark Academia", tags: ["fantasy", "history", "colonialism"], img: "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&q=80&w=800", rating: 4.7 },
-        { id: 8, title: "Happy Place", author: "Emily Henry", vibe: "Comfy", tags: ["romance", "summer", "contemporary"], img: "https://images.unsplash.com/photo-1476275466078-4007374efbbe?auto=format&fit=crop&q=80&w=800", rating: 4.3 },
-        { id: 9, title: "Iron Flame", author: "Rebecca Yarros", vibe: "Spicy", tags: ["fantasy", "war", "dragons"], img: "https://images.unsplash.com/photo-1614544048536-0d28caf77f41?auto=format&fit=crop&q=80&w=800", rating: 4.6 },
-        { id: 10, title: "Yellowface", author: "R.F. Kuang", vibe: "Chaotic", tags: ["thriller", "publishing", "satire"], img: "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&q=80&w=800", rating: 4.1 },
-        { id: 11, title: "Tomorrow, and Tomorrow, and Tomorrow", author: "Gabrielle Zevin", vibe: "Main Character", tags: ["gaming", "friends", "sad"], img: "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&q=80&w=800", rating: 4.4 },
-        { id: 12, title: "Haunting Adeline", author: "H.D. Carlton", vibe: "Chaotic", tags: ["dark romance", "thriller"], img: "https://images.unsplash.com/photo-1633477189729-9290b3261d0a?auto=format&fit=crop&q=80&w=800", rating: 3.5 }
+        { id: 1, title: "The Secret History", author: "Donna Tartt", vibe: "Dark Academia", tags: ["chaotic", "murder", "classics"], img: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&q=80&w=800", rating: 4.8, description: "Under the influence of their charismatic classics professor, a group of clever, eccentric misfits at an elite New England college discover a way of thinking and living that is a world away from the humdrum existence of their contemporaries. But when they go beyond the boundaries of normal morality they slip gradually from obsession to corruption and betrayal, and at last—inexorably—into evil." },
+        { id: 2, title: "Fourth Wing", author: "Rebecca Yarros", vibe: "Spicy", tags: ["fantasy", "dragons", "romance"], img: "https://images.unsplash.com/photo-1629198688000-71f23e745b6e?auto=format&fit=crop&q=80&w=800", rating: 4.9, description: "Twenty-year-old Violet Sorrengail was supposed to enter the Scribe Quadrant, living a quiet life among books and history. Now, the commanding general—also known as her tough-as-talons mother—has ordered Violet to join the hundreds of candidates striving to become the elite of Navarre: dragon riders." },
+        { id: 3, title: "Bunny", author: "Mona Awad", vibe: "Brain Rot", tags: ["weird", "dark", "campus"], img: "https://images.unsplash.com/photo-1532012197267-da84d127e765?auto=format&fit=crop&q=80&w=800", rating: 3.7, description: "Samantha Heather Mackey couldn't be more of an outsider in her small, highly selective MFA program at New England's Warren University. A scholarship student who prefers the company of her dark imagination to that of most people, she is utterly repelled by the rest of her fiction writing cohort--a clique of unbearably twee rich girls who call each other 'Bunny'." },
+        { id: 4, title: "Normal People", author: "Sally Rooney", vibe: "Heart-Wrenching", tags: ["sad girl", "romance", "contemporary"], img: "https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&q=80&w=800", rating: 4.2, description: "Connell and Marianne grow up in the same small town, but the similarities end there. At school, Connell is popular and well liked, while Marianne is a loner. But when the two strike up a conversation—awkward but electrifying—something life changing begins." },
+        { id: 5, title: "A Court of Thorns and Roses", author: "Sarah J. Maas", vibe: "Spicy", tags: ["fantasy", "fae", "romance"], img: "https://images.unsplash.com/photo-1519681393798-38e34e918b19?auto=format&fit=crop&q=80&w=800", rating: 4.5, description: "Feyre's survival rests upon her ability to hunt and kill – the forest where she lives is a cold, bleak place in the long winter months. So when she spots a deer in the forest being pursued by a wolf, she cannot resist fighting it for the flesh. But to do so, she must kill the predator and kill something so precious comes at a price." },
+        { id: 6, title: "My Year of Rest and Relaxation", author: "Ottessa Moshfegh", vibe: "Comfy", tags: ["sad girl", "sleep", "unhinged"], img: "https://images.unsplash.com/photo-1491841550275-ad7854e35ca6?auto=format&fit=crop&q=80&w=800", rating: 3.9, description: "Our narrator should be happy, right? She's young, thin, pretty, a recent Columbia graduate, works an easy job at a hip art gallery, lives in an apartment on the Upper East Side of Manhattan paid for, like the rest of her needs, by her inheritance. But there is a dark and vacuous hole in her heart, and it isn't just the loss of her parents, or the way her Wall Street boyfriend treats her, or her sadomasochistic relationship with her best friend, Reva." },
+        { id: 7, title: "Babel", author: "R.F. Kuang", vibe: "Dark Academia", tags: ["fantasy", "history", "colonialism"], img: "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&q=80&w=800", rating: 4.7, description: "1828. Robin Swift, orphaned by cholera in Canton, is brought to London by the mysterious Professor Lovell. There, he trains for years in Latin, Ancient Greek, and Chinese, all in preparation for the day he'll enroll in Oxford University's prestigious Royal Institute of Translation—also known as Babel." },
+        { id: 8, title: "Happy Place", author: "Emily Henry", vibe: "Comfy", tags: ["romance", "summer", "contemporary"], img: "https://images.unsplash.com/photo-1476275466078-4007374efbbe?auto=format&fit=crop&q=80&w=800", rating: 4.3, description: "Harriet and Wyn have been the perfect couple since they met in college—they go together like salt and pepper, honey and tea, lobster and rolls. Except, now—for reasons they’re still not discussing—they don’t." },
+        { id: 9, title: "Iron Flame", author: "Rebecca Yarros", vibe: "Spicy", tags: ["fantasy", "war", "dragons"], img: "https://images.unsplash.com/photo-1614544048536-0d28caf77f41?auto=format&fit=crop&q=80&w=800", rating: 4.6, description: "Everyone expected Violet Sorrengail to die during her first year at Basgiath War College—Violet included. But Threshing was only the first impossible test meant to weed out the weak-willed, the unworthy, and the unlucky." },
+        { id: 10, title: "Yellowface", author: "R.F. Kuang", vibe: "Chaotic", tags: ["thriller", "publishing", "satire"], img: "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&q=80&w=800", rating: 4.1, description: "Authors June Hayward and Athena Liu were supposed to be twin rising stars: same year at Yale, same debut year in publishing. But Athena's a cross-genre literary darling, and June didn't even get a paperback release." },
+        { id: 11, title: "Tomorrow, and Tomorrow, and Tomorrow", author: "Gabrielle Zevin", vibe: "Main Character", tags: ["gaming", "friends", "sad"], img: "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&q=80&w=800", rating: 4.4, description: "In this exhilarating novel, two friends—often in love, but never lovers—come together as creative partners in the world of video game design, where success brings them fame, joy, tragedy, duplicity, and, ultimately, a kind of immortality." },
+        { id: 12, title: "Haunting Adeline", author: "H.D. Carlton", vibe: "Chaotic", tags: ["dark romance", "thriller"], img: "https://images.unsplash.com/photo-1633477189729-9290b3261d0a?auto=format&fit=crop&q=80&w=800", rating: 3.5, description: "The Manipulator. I can manipulate the emotions of anyone who lets me. I will make you hurt, make you cry, make you laugh and sigh. But my words don't affect him. Especially not when I plead for him to leave. He's always there, watching and waiting." }
     ];
 
     /**
@@ -370,7 +392,6 @@
         }
 
         async searchBooks(query) {
-            // REAL API CALL TO OPEN LIBRARY
             if (!query) return [];
             
             try {
@@ -378,17 +399,14 @@
                 const response = await fetch(`https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=12`);
                 const data = await response.json();
 
-                // Transform API Data to App Format
                 return data.docs.map(doc => {
                     const hasCover = doc.cover_i;
                     return {
-                        id: doc.key,
+                        id: doc.key, // Returns "/works/OL..."
                         title: doc.title,
                         author: doc.author_name ? doc.author_name[0] : "Unknown Author",
-                        // Synthesize a vibe since API doesn't have it
                         vibe: this.getRandomVibe(),
                         tags: doc.subject ? doc.subject.slice(0, 3) : ["General"],
-                        // Use Open Library Cover API or a nice fallback
                         img: hasCover 
                             ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-L.jpg` 
                             : 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&q=80&w=800', 
@@ -398,11 +416,47 @@
 
             } catch (error) {
                 console.error("Open Library API Error:", error);
-                return []; // Return empty array on failure so app doesn't crash
+                return []; 
             }
         }
 
-        // Helper to keep the UI consistent even with external data
+        async getBookDetails(id) {
+            // Check if it's a mock book (ID is a number or numeric string)
+            const mockBook = bookDatabase.find(b => b.id == id);
+            if (mockBook) {
+                return new Promise(resolve => setTimeout(() => resolve(mockBook), 300));
+            }
+
+            // It's an Open Library ID (string like "/works/OL12345W")
+            try {
+                const response = await fetch(`https://openlibrary.org${id}.json`);
+                const data = await response.json();
+                
+                let desc = "No summary available for this title.";
+                if (data.description) {
+                    desc = typeof data.description === 'string' ? data.description : data.description.value;
+                }
+
+                // Construct a book object with the new detailed info
+                // Note: We might miss the cover/author if we don't pass it, 
+                // but usually this is called after a search, so we could cache, 
+                // but for simplicity we will just return the description.
+                return {
+                    id: data.key,
+                    title: data.title,
+                    description: desc,
+                    // Fallbacks for detail view if strictly fetching by ID
+                    img: data.covers ? `https://covers.openlibrary.org/b/id/${data.covers[0]}-L.jpg` : 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&q=80&w=800',
+                    tags: data.subjects ? data.subjects.slice(0, 5) : ["Fiction"],
+                    rating: 4.0 // Placeholder as work endpoint doesn't always have rating
+                };
+
+            } catch (e) {
+                console.error("Details fetch error", e);
+                return { description: "Could not load book details." };
+            }
+        }
+
         getRandomVibe() {
             return this.vibes[Math.floor(Math.random() * this.vibes.length)];
         }
@@ -421,6 +475,36 @@
         }
 
         async getRandomBook() {
+             // API-based "Unexpected Surprise"
+             const randomTerms = ["chaos", "dream", "mystery", "space", "love", "dark", "secret", "magic", "time", "lost"];
+             const term = randomTerms[Math.floor(Math.random() * randomTerms.length)];
+             const offset = Math.floor(Math.random() * 50); // Grab a random book from the first 50 results
+
+             try {
+                 const response = await fetch(`https://openlibrary.org/search.json?q=${term}&limit=1&offset=${offset}`);
+                 const data = await response.json();
+
+                 if (data.docs && data.docs.length > 0) {
+                     return data.docs.map(doc => {
+                         const hasCover = doc.cover_i;
+                         return {
+                             id: doc.key,
+                             title: doc.title,
+                             author: doc.author_name ? doc.author_name[0] : "Unknown Author",
+                             vibe: "Total Surprise",
+                             tags: doc.subject ? doc.subject.slice(0, 3) : ["General"],
+                             img: hasCover 
+                                 ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-L.jpg` 
+                                 : 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&q=80&w=800', 
+                             rating: (doc.ratings_average || (Math.random() * 1.5 + 3.5)).toFixed(1)
+                         };
+                     });
+                 }
+             } catch (error) {
+                 console.error("Surprise API error:", error);
+             }
+
+             // Fallback to local DB if API fails
              return new Promise((resolve) => {
                 setTimeout(() => {
                     const random = bookDatabase[Math.floor(Math.random() * bookDatabase.length)];
@@ -439,6 +523,7 @@
             this.service = new BackendService();
             this.initListeners();
             this.renderCommunityFeed();
+            this.loadBookOfTheWeek(); // Load featured book on init
         }
 
         initListeners() {
@@ -450,6 +535,18 @@
 
         // --- Core Actions ---
 
+        async loadBookOfTheWeek() {
+            // Dynamically fetch "The Secret History" from API to replace hardcoded data
+            const results = await this.service.searchBooks("The Secret History");
+            if (results && results.length > 0) {
+                const book = results[0];
+                document.getElementById('botw-title').innerText = book.title;
+                document.getElementById('botw-img').src = book.img;
+                // Important: Update onclick to use the API ID so details view works
+                document.getElementById('botw-container').setAttribute('onclick', `app.showDetails('${book.id}')`);
+            }
+        }
+
         async handleSearch() {
             const query = document.getElementById('main-search-input').value;
             if (!query) return;
@@ -460,11 +557,8 @@
             this.showLoading(false);
         }
 
-        // Wrapper to search by category
         searchByCategory(category) {
-            // Update the search box to reflect the category
             document.getElementById('main-search-input').value = category;
-            // Trigger the standard search
             this.handleSearch();
         }
 
@@ -483,17 +577,82 @@
             this.showLoading(false);
         }
 
+        // --- Modal & Details Logic ---
+
+        async showDetails(bookId) {
+            this.showLoading(true);
+            
+            // Fetch detailed info
+            const details = await this.service.getBookDetails(bookId);
+            
+            // Populate Modal
+            const modal = document.getElementById('book-modal');
+            const content = document.getElementById('modal-content');
+            
+            // Check if we have merged data or just desc
+            const title = details.title || "Book Title";
+            const img = details.img || "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&q=80&w=800";
+            const desc = details.description || "No description available.";
+            const tags = details.tags || [];
+
+            content.innerHTML = `
+                <div class="w-full md:w-1/3 h-64 md:h-auto bg-zinc-900 relative">
+                     <img src="${img}" class="w-full h-full object-cover" alt="Book Cover">
+                     <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black to-transparent p-4">
+                        <div class="flex gap-2">
+                             <span class="bg-primary px-3 py-1 rounded-full text-xs font-bold shadow-lg">Reading Now</span>
+                        </div>
+                     </div>
+                </div>
+                <div class="w-full md:w-2/3 p-6 md:p-10 flex flex-col overflow-y-auto">
+                    <h2 class="font-serif text-3xl md:text-5xl font-black text-white leading-tight mb-2">${title}</h2>
+                    <div class="flex items-center gap-3 text-zinc-400 mb-6 text-sm font-medium">
+                        <span class="text-lime-accent flex items-center gap-1"><span class="material-symbols-outlined text-sm">star</span> ${details.rating || '4.5'}</span>
+                        <span>•</span>
+                        <span>${details.author || 'Unknown Author'}</span>
+                        <span>•</span>
+                        <span>${tags[0] || 'Fiction'}</span>
+                    </div>
+                    
+                    <h4 class="text-sm font-bold uppercase tracking-widest text-zinc-500 mb-3">Synopsis</h4>
+                    <p class="text-zinc-300 leading-relaxed text-lg mb-8 font-light">${desc}</p>
+                    
+                    <div class="mt-auto flex gap-4">
+                        <button class="flex-1 bg-white text-black font-bold py-3 rounded-xl hover:bg-zinc-200 transition-colors flex items-center justify-center gap-2">
+                            <span class="material-symbols-outlined">menu_book</span> Read Sample
+                        </button>
+                         <button class="flex-1 bg-white/5 text-white border border-white/10 font-bold py-3 rounded-xl hover:bg-white/10 transition-colors flex items-center justify-center gap-2">
+                            <span class="material-symbols-outlined">bookmark</span> Save
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            // Show Modal
+            modal.classList.remove('hidden');
+            // Small timeout to allow display:block to apply before opacity transition
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+            }, 10);
+            
+            this.showLoading(false);
+        }
+
+        closeDetails() {
+            const modal = document.getElementById('book-modal');
+            modal.classList.add('opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
         // --- UI Rendering ---
 
         displayResults(books, title) {
-            // Hide Home, Show Results
             document.getElementById('home-view').classList.add('hidden');
             document.getElementById('results-view').classList.remove('hidden');
-            
-            // Update Title
             document.getElementById('results-title').innerText = title;
 
-            // Render Grid
             const grid = document.getElementById('results-grid');
             const emptyState = document.getElementById('empty-state');
             grid.innerHTML = '';
@@ -507,7 +666,7 @@
                 
                 books.forEach(book => {
                     const card = `
-                        <div class="group relative flex flex-col gap-3 animate-fade-in">
+                        <div class="group relative flex flex-col gap-3 animate-fade-in cursor-pointer" onclick="app.showDetails('${book.id}')">
                             <div class="relative w-full aspect-[2/3] rounded-lg overflow-hidden border border-white/5 bg-zinc-900 group-hover:border-primary/50 transition-all shadow-lg shadow-black/50">
                                 <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors z-10"></div>
                                 <img src="${book.img}" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700" loading="lazy" />
@@ -540,8 +699,6 @@
             if (isLoading) el.classList.remove('hidden');
             else el.classList.add('hidden');
         }
-
-        // --- Simulating Live Data ---
 
         renderCommunityFeed() {
             const feedContainer = document.getElementById('community-feed');
